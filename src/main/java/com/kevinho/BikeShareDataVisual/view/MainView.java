@@ -4,15 +4,16 @@ package com.kevinho.BikeShareDataVisual.view;
 import com.kevinho.BikeShareDataVisual.entity.Station;
 import com.kevinho.BikeShareDataVisual.service.DataService;
 import com.vaadin.flow.component.board.Board;
-import com.vaadin.flow.component.board.Row;
+
 import com.vaadin.flow.component.charts.Chart;
 import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.dependency.HtmlImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
@@ -33,6 +34,7 @@ import java.util.Map;
 
 @Route("")
 @PageTitle("LA Metro Bike Share Data Visualized")
+@HtmlImport("frontend://styles/shared-styles.html")
 public class MainView extends VerticalLayout {
 
     @Autowired
@@ -68,13 +70,13 @@ public class MainView extends VerticalLayout {
 
 
     public MainView() throws IOException {
-        getStyle().set("background", "#F7F7F7");
         setWidth("100%");
         initBoard();
 
         initTotalTrips();
         initAvgDuration();
         initTotalDistance();
+
 
         pieChart = routeCategoriesChart();
         child.add(pieChart);
@@ -96,15 +98,20 @@ public class MainView extends VerticalLayout {
         //Row nested = new Row(numOfTrips, regCommuters);
 
         board.addRow(numOfTrips, avgDuration, totalDistance);
+        board.addRow(warningLayout(" * Average miles traveled is based on one way trips"));
+
         board.addRow(child, child2);
+        board.addRow(warningLayout(""), warningLayout("* Staff passes not included"));
 
         board.addRow(child3);
 
         board.addRow(child4);
         board.addRow(gridLayout, gridLayout2);
+        board.addRow(setFooter());
 
         add(board);
     }
+
 
     public void initTotalTrips(){
         int trips = DataService.getTotalTrips();
@@ -116,37 +123,17 @@ public class MainView extends VerticalLayout {
 
         Label label = new Label("total trips:");
         Label num = new Label(trips + "");
-        label.getStyle().set("color", "#ffffff");
-        label.getStyle().set("fontSize", "30px");
-        num.getStyle().set("color", "#ffffff");
-        num.getStyle().set("fontSize", "30px");
+        label.setClassName("stat_label");
+        num.setClassName("stat_label");
+
+
 
         v.add(exit, label, num);
         v.setAlignItems(Alignment.CENTER);
-        numOfTrips.getStyle().set("backgroundColor", "#90ED7D");
+        numOfTrips.setClassName("num_of_trips");
         numOfTrips.add(v);
 
     }
-
-    /*
-    public void initRegCommuters(){
-        double regCommuters = DataService.getTotalTrips();
-        VerticalLayout v = new VerticalLayout();
-
-        Icon exit = new Icon(VaadinIcon.EXIT);
-        exit.setSize("60px");
-        exit.setColor("#ffffff");
-
-        Label label = new Label("total trips: " + regCommuters);
-        label.getStyle().set("color", "#ffffff");
-        label.getStyle().set("fontSize", "30px");
-
-        v.add(exit, label);
-        v.setAlignItems(Alignment.CENTER);
-        numOfTrips.getStyle().set("backgroundColor", "#9fa8da");
-        numOfTrips.add(v);
-    }
-    */
 
     public void initAvgDuration(){
         int time = DataService.averageRideTime();
@@ -158,14 +145,13 @@ public class MainView extends VerticalLayout {
 
         Label label = new Label("average trip duration:");
         Label num = new Label(time + " minutes");
-        label.getStyle().set("color", "#ffffff");
-        label.getStyle().set("fontSize", "30px");
-        num.getStyle().set("color", "#ffffff");
-        num.getStyle().set("fontSize", "30px");
+        label.setClassName("stat_label");
+        num.setClassName("stat_label");
+
 
         v.add(clock, label, num);
         v.setAlignItems(Alignment.CENTER);
-        avgDuration.getStyle().set("backgroundColor", "#F7A35C");
+        avgDuration.setClassName("avg_duration");
         avgDuration.add(v);
     }
 
@@ -177,17 +163,27 @@ public class MainView extends VerticalLayout {
         mapMarker.setSize("60px");
         mapMarker.setColor("#ffffff");
 
-        Label label = new Label("total miles traveled:");
+        Label label = new Label("average miles traveled:");
         Label num = new Label(total + " miles");
-        label.getStyle().set("color", "#ffffff");
-        label.getStyle().set("fontSize", "30px");
-        num.getStyle().set("color", "#ffffff");
-        num.getStyle().set("fontSize", "30px");
+        label.setClassName("stat_label");
+        num.setClassName("stat_label");
+
 
         v.add(mapMarker, label, num);
         v.setAlignItems(Alignment.CENTER);
-        totalDistance.getStyle().set("backgroundColor", "#8085E9");
+        totalDistance.setClassName("total_distance");
+
         totalDistance.add(v);
+    }
+
+    public VerticalLayout warningLayout(String message){
+        VerticalLayout v = new VerticalLayout();
+        Label label = new Label(message);
+        label.getStyle().set("fontSize", "14px");
+        label.getStyle().set("color", "#A9A9A9");
+
+        v.add(label);
+        return v;
     }
 
 
@@ -273,6 +269,7 @@ public class MainView extends VerticalLayout {
         conf.setSeries(series);
         pieChart.setVisibilityTogglingDisabled(true);
 
+
         return pieChart;
     }
 
@@ -303,6 +300,7 @@ public class MainView extends VerticalLayout {
         DataSeries series = new DataSeries();
         series.add(new DataSeriesItem("One Way", oneWay));
         series.add(new DataSeriesItem("Round Trip", roundTrip));
+
 
         conf.setSeries(series);
         pieChart.setVisibilityTogglingDisabled(true);
@@ -353,14 +351,24 @@ public class MainView extends VerticalLayout {
         headerLayout.setAlignItems(Alignment.CENTER);
 
         Label title = new Label("LA Metro Bike Share Data");
-        title.getStyle().set("color", "black");
-
-        title.getStyle().set("fontSize", "80px");
-        title.getStyle().set("fontFamily", "Arial");
-
+        title.setClassName("title_header");
 
         headerLayout.add(title);
         return headerLayout;
+    }
+
+    public VerticalLayout setFooter(){
+        VerticalLayout v = new VerticalLayout();
+        v.setAlignItems(Alignment.CENTER);
+        v.setClassName("footer_header");
+
+        Label footer = new Label("\u00a9" + " 2018 Kevin Ho");
+        footer.addClassName("footer");
+
+        v.add(footer);
+
+
+        return v;
     }
 
     public void initBoard(){
@@ -378,18 +386,21 @@ public class MainView extends VerticalLayout {
         child4 = createDiv();
         child5 = createDiv();
         child6 = createDiv();
+
+        numOfTrips = createDiv();
+        regCommuters = createDiv();
+        totalDistance = createDiv();
+        avgDuration = createDiv();
     }
 
     private Div createDiv(){
         Div div = new Div();
-        div.getStyle().set("margin", "75px 0px 75px 0px");
-        div.getStyle().set("border", "1px solid lightgrey");
-        div.getStyle().set("borderRadius", "10px");
+        div.setClassName("div");
         return div;
     }
 
 
-    public Grid popularStations(ArrayList<Station> stationList, Grid initGrid) throws IOException {
+    public Grid popularStations(ArrayList<Station> stationList, Grid initGrid) {
         initGrid = new Grid<>(Station.class);
 
         initGrid.setItems(stationList);
@@ -415,9 +426,11 @@ public class MainView extends VerticalLayout {
 
         gridLayout.add(label, grid);
         gridLayout.setAlignItems(Alignment.CENTER);
+        gridLayout.getStyle().set("marginTop", "50px");
 
         gridLayout2.add(label2, grid2);
         gridLayout2.setAlignItems(Alignment.CENTER);
+        gridLayout2.getStyle().set("marginTop", "50px");
 
     }
 

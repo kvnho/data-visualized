@@ -52,7 +52,11 @@
 			<artifactId>vaadin-charts-flow</artifactId>
 		</dependency>
 
-		<dependency>
+
+
+
+
+        <dependency>
 			<groupId>com.vaadin</groupId>
 			<artifactId>vaadin-board-flow</artifactId>
 		</dependency>

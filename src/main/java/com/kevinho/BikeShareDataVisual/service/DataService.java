@@ -215,11 +215,15 @@ public class DataService {
                 continue;
             }
 
-            if((lat1 == lat2) && (long1 == long2)){
+            if(lat1 == 0 || lat2 == 0 || long1 == 0 || long2 == 0){
+                count++;
+            }
+            else if((lat1 == lat2) && (long1 == long2)){
                 count++;
             }
             else{
-                dist += distance(lat1, lat2, long1, long2);
+                dist += distance(lat1, long1, lat2, long2);
+
             }
         }
 
@@ -230,6 +234,7 @@ public class DataService {
         return dist;
     }
 
+
     public static double distance(double lat1, double lon1, double lat2, double lon2) {
         double theta = lon1 - lon2;
         double dist = Math.sin(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2)) + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.cos(Math.toRadians(theta));
@@ -238,6 +243,8 @@ public class DataService {
         dist = dist * 60 * 1.1515;
         return dist;
     }
+
+
 
 
 }

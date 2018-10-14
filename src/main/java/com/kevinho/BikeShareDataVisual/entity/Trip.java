@@ -39,18 +39,6 @@ public class Trip {
         return "Duration: " + duration + ", " + "Start Time: " + startTime + ", " + "End Time: " + endTime + ", " + "Start Stop: " + startStop + ", " + "End Stop: " + endStop + ", " + "Plan: " + plan + ", " + "Route Category: " + routeCategory + ", " + "Passholder Type: " + passholderType;
     }
 
-    public double getDistanceTraveled(){
-        double startLat = Double.parseDouble(this.startStopLat);
-        double startLong = Double.parseDouble(this.startStopLong);
-        double endLat = Double.parseDouble(this.endStopLat);
-        double endLong = Double.parseDouble(this.endStopLong);
-
-        double theta = startLong - endLong;
-        double distance = Math.sin(degreeToRadians(startLat)) * Math.sin(degreeToRadians(endLat)) + Math.cos(degreeToRadians(degreeToRadians(startLat)) * Math.cos(degreeToRadians(endLat)) * Math.cos(degreeToRadians(theta)));
-        distance = distance * 60 * 1.1515;
-        return distance;
-    }
-
     private double degreeToRadians(double degree){
         return (degree * Math.PI / 180.0);
     }

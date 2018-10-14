@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -155,6 +156,7 @@ public class DataService {
         for(Trip trip : tripMap.values()){
             totalTime += Integer.parseInt(trip.getDuration());
         }
+        totalTime /= 60;
         return totalTime / tripMap.size();
     }
 
@@ -188,4 +190,54 @@ public class DataService {
         }
         return passholderMap;
     }
+
+    public static int getTotalTrips(){
+        return tripMap.size();
+    }
+
+    public static double getDistanceTraveled(){
+        DecimalFormat decimalFormat = new DecimalFormat(".##");
+        double dist = 0;
+        int total = getTotalTrips();
+        int count = 0;
+
+        double lat1 = 0, lat2 = 0, long1 = 0, long2 = 0;
+
+        for(Trip trip : tripMap.values()){
+            try {
+                lat1 = Double.parseDouble(trip.getStartStopLat());
+                lat2 = Double.parseDouble(trip.getEndStopLat());
+                long1 = Double.parseDouble(trip.getStartStopLong());
+                long2 = Double.parseDouble(trip.getEndStopLong());
+            }
+            catch (Exception e){
+                count++;
+                continue;
+            }
+
+            if((lat1 == lat2) && (long1 == long2)){
+                count++;
+            }
+            else{
+                dist += distance(lat1, lat2, long1, long2);
+            }
+        }
+
+        total -= count;
+        dist /= total;
+        dist = Double.parseDouble(decimalFormat.format(dist));
+
+        return dist;
+    }
+
+    public static double distance(double lat1, double lon1, double lat2, double lon2) {
+        double theta = lon1 - lon2;
+        double dist = Math.sin(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2)) + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.cos(Math.toRadians(theta));
+        dist = Math.acos(dist);
+        dist = Math.toDegrees(dist);
+        dist = dist * 60 * 1.1515;
+        return dist;
+    }
+
+
 }

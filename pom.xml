@@ -55,7 +55,6 @@
 
 
 
-
         <dependency>
 			<groupId>com.vaadin</groupId>
 			<artifactId>vaadin-board-flow</artifactId>

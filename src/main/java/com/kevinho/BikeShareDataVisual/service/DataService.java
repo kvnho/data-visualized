@@ -123,7 +123,7 @@ public class DataService {
     }
 
     public static int[] whichPasses(){
-        int passes[] = new int[3];
+        int passes[] = new int[4];
         for(Trip trip : tripMap.values()){
             if(trip.getPassholderType().equals("Monthly Pass")){
                 passes[0]++;
@@ -133,6 +133,9 @@ public class DataService {
             }
             else if(trip.getPassholderType().equals("Walk-up")){
                 passes[2]++;
+            }
+            else if(trip.getPassholderType().equals("Staff Annual")){
+                passes[3]++;
             }
         }
         return passes;
@@ -176,6 +179,7 @@ public class DataService {
         return comboMap;
     }
 
+    /*
     public static HashMap<String, Integer> getPassholderType(){
         HashMap<String, Integer> passholderMap = new HashMap<>();
 
@@ -190,6 +194,7 @@ public class DataService {
         }
         return passholderMap;
     }
+    */
 
     public static int getTotalTrips(){
         return tripMap.size();

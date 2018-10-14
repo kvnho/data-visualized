@@ -101,7 +101,6 @@ public class MainView extends VerticalLayout {
         board.addRow(warningLayout(" * Average miles traveled is based on one way trips"));
 
         board.addRow(child, child2);
-        board.addRow(warningLayout(""), warningLayout("* Staff passes not included"));
 
         board.addRow(child3);
 
@@ -186,7 +185,6 @@ public class MainView extends VerticalLayout {
         return v;
     }
 
-
     public Chart passHolderAndTripRouteChart(){
         HashMap<String, Integer> combos = DataService.passAndTripCombos();
         int flexPassOneWay = combos.get("Flex PassOne Way");
@@ -227,7 +225,7 @@ public class MainView extends VerticalLayout {
 
         YAxis y = new YAxis();
         y.setMin(0);
-        y.setTitle("Number of Riders");
+        y.setTitle("Number of Trips");
         configuration.addyAxis(y);
 
         return barChart;
@@ -235,15 +233,13 @@ public class MainView extends VerticalLayout {
 
     public Chart passholderChart(){
         DecimalFormat decimalFormat = new DecimalFormat(".##");
-        HashMap<String, Integer> passholdersMap = DataService.getPassholderType();
+        int[] passes = DataService.whichPasses();
+        double total = passes[0] + passes[1] + passes[2] + passes[3];
 
-        float total = 0;
-        for(int a : passholdersMap.values()){
-            total += a;
-        }
-        double flexPass = Double.parseDouble(decimalFormat.format(passholdersMap.get("Flex Pass")*100 / total));
-        double monthlyPass = Double.parseDouble(decimalFormat.format(passholdersMap.get("Monthly Pass") / total * 100));
-        double walkupPass = Double.parseDouble(decimalFormat.format(passholdersMap.get("Walk-up") / total * 100));
+        double monthlyPass = Double.parseDouble(decimalFormat.format(passes[0]/total*100));
+        double flexPass = Double.parseDouble(decimalFormat.format(passes[1]/total*100));
+        double walkupPass = Double.parseDouble(decimalFormat.format(passes[2]/total*100));
+        double staffPass = Double.parseDouble(decimalFormat.format(passes[3]/total*100));
 
         Chart pieChart = new Chart(ChartType.PIE);
         Configuration conf = pieChart.getConfiguration();
@@ -251,7 +247,7 @@ public class MainView extends VerticalLayout {
         conf.setTitle("<b>Passholder Types<b>");
 
         Tooltip tooltip = new Tooltip();
-        tooltip.setValueDecimals(1);
+        //tooltip.setValueDecimals(2);
         tooltip.setPointFormat("<b>{point.percentage}%</b>");
         tooltip.setFollowPointer(true);
         conf.setTooltip(tooltip);
@@ -262,13 +258,14 @@ public class MainView extends VerticalLayout {
         conf.setPlotOptions(plotOptions);
 
         DataSeries series = new DataSeries();
+
         series.add(new DataSeriesItem("Flex Pass", flexPass));
+        series.add(new DataSeriesItem("Staff Annual", staffPass));
         series.add(new DataSeriesItem("Monthly Pass", monthlyPass));
         series.add(new DataSeriesItem("Walk-up", walkupPass));
 
         conf.setSeries(series);
         pieChart.setVisibilityTogglingDisabled(true);
-
 
         return pieChart;
     }
@@ -286,7 +283,7 @@ public class MainView extends VerticalLayout {
         conf.setTitle("<b>Route Categories<b>");
 
         Tooltip tooltip = new Tooltip();
-        tooltip.setValueDecimals(2);
+        //tooltip.setValueDecimals(2);
         tooltip.setPointFormat("<b>{point.percentage}%</b>");
         conf.setTooltip(tooltip);
         tooltip.setFollowPointer(true);
@@ -314,7 +311,7 @@ public class MainView extends VerticalLayout {
 
         Chart lineChart = new Chart(ChartType.SPLINE);
         Configuration configuration = lineChart.getConfiguration();
-        configuration.setTitle("<b>Riders Per Month<b>");
+        configuration.setTitle("<b>Trips Per Month<b>");
 
         Tooltip tooltip = new Tooltip();
         tooltip.setFollowPointer(true);
@@ -326,7 +323,7 @@ public class MainView extends VerticalLayout {
 
         YAxis y = new YAxis();
         y.setMin(0);
-        y.setTitle("Number of Riders");
+        y.setTitle("Number of Trips");
         configuration.addyAxis(y);
 
         DataSeries dataSeries = new DataSeries();
@@ -399,7 +396,6 @@ public class MainView extends VerticalLayout {
         return div;
     }
 
-
     public Grid popularStations(ArrayList<Station> stationList, Grid initGrid) {
         initGrid = new Grid<>(Station.class);
 
@@ -415,7 +411,9 @@ public class MainView extends VerticalLayout {
 
     public void initGridLayout(String gridName, String gridName2) throws IOException {
         Label label = new Label(gridName);
+        label.addClassName("grid_title");
         Label label2 = new Label(gridName2);
+        label2.addClassName("grid_title");
         ArrayList<ArrayList<Station>> stations = getBothStationLists();
 
         gridLayout = new VerticalLayout();

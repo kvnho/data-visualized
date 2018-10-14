@@ -1,17 +1,28 @@
 package com.kevinho.BikeShareDataVisual.view;
 
 
+import com.kevinho.BikeShareDataVisual.entity.Station;
 import com.kevinho.BikeShareDataVisual.service.DataService;
 import com.vaadin.flow.component.board.Board;
 import com.vaadin.flow.component.charts.Chart;
 import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,19 +34,32 @@ public class MainView extends VerticalLayout {
 
     @Autowired
     private DataService dataService;
+
+
     private Board board;
     private Chart barChart;
     private Chart pieChart;
     private Chart lineChart;
     private Chart child3Chart;
+    private Grid<Station> grid;
+    private Grid<Station> grid2;
     private Div child;
     private Div child2;
     private Div child3;
     private Div child4;
+    private Div child5;
+    private Div child6;
+    private VerticalLayout gridLayout;
+    private VerticalLayout gridLayout2;
+
+    private final String URL = "https://bikeshare.metro.net/stations/json/";
+    private OkHttpClient client;
+    private Response response;
 
 
 
-    public MainView(){
+    public MainView() throws IOException {
+        getStyle().set("background", "#F7F7F7");
         setWidth("100%");
         initBoard();
 
@@ -51,6 +75,8 @@ public class MainView extends VerticalLayout {
         lineChart = ridersPerMonthChart();
         child4.add(lineChart);
 
+        initGridLayout("Popular Starting Stations", "Popular Ending Stations");
+
 
         board.addRow(setHeader());
         board.addRow(child, child2);
@@ -58,10 +84,12 @@ public class MainView extends VerticalLayout {
         board.addRow(child3);
 
         board.addRow(child4);
+        board.addRow(gridLayout, gridLayout2);
 
 
         add(board);
     }
+
 
     public Chart passHolderAndTripRouteChart(){
         HashMap<String, Integer> combos = DataService.passAndTripCombos();
@@ -148,7 +176,6 @@ public class MainView extends VerticalLayout {
         return pieChart;
     }
 
-
     public Chart routeCategoriesChart(){
         DecimalFormat decimalFormat = new DecimalFormat(".##");
         int routes[] = DataService.routeCategories();
@@ -183,7 +210,6 @@ public class MainView extends VerticalLayout {
 
         return pieChart;
     }
-
 
     public Chart ridersPerMonthChart(){
         ArrayList<Map.Entry<Integer, Integer>> ridersPerMonthList = DataService.ridersPerMonth();
@@ -237,7 +263,6 @@ public class MainView extends VerticalLayout {
         return headerLayout;
     }
 
-
     public void initBoard(){
         board = new Board();
         board.setWidth("99%");
@@ -246,12 +271,103 @@ public class MainView extends VerticalLayout {
         child2 = createDiv();
         child3 = createDiv();
         child4 = createDiv();
+        child5 = createDiv();
+        child6 = createDiv();
     }
-
 
     private Div createDiv(){
         Div div = new Div();
         div.getStyle().set("margin", "75px 0px 75px 0px");
+        div.getStyle().set("border", "1px solid lightgrey");
+        div.getStyle().set("borderRadius", "10px");
         return div;
     }
+
+
+    public Grid popularStations(ArrayList<Station> stationList, Grid initGrid) throws IOException {
+        initGrid = new Grid<>(Station.class);
+
+        initGrid.setItems(stationList);
+
+        ListDataProvider<Station> listDataProvider = DataProvider.ofCollection(stationList);
+        initGrid.setDataProvider(listDataProvider);
+
+        initGrid.setColumns("id", "address", "visits", "bikes", "docks", "status");
+
+        return initGrid;
+    }
+
+    public void initGridLayout(String gridName, String gridName2) throws IOException {
+        Label label = new Label(gridName);
+        Label label2 = new Label(gridName2);
+        ArrayList<ArrayList<Station>> stations = getBothStationLists();
+
+        gridLayout = new VerticalLayout();
+        gridLayout2 = new VerticalLayout();
+
+        grid = popularStations(stations.get(0), grid);
+        grid2 = popularStations(stations.get(1), grid2);
+
+        gridLayout.add(label, grid);
+        gridLayout.setAlignItems(Alignment.CENTER);
+
+        gridLayout2.add(label2, grid2);
+        gridLayout2.setAlignItems(Alignment.CENTER);
+
+    }
+
+    @SuppressWarnings("Duplicates")
+    public ArrayList<ArrayList<Station>> getBothStationLists() throws IOException {
+        client = new OkHttpClient();
+        Request request = new Request.Builder().url(URL).build();
+        response = client.newCall(request).execute();
+        JSONArray jsonArray = new JSONObject(response.body().string()).getJSONArray("features");
+
+        HashMap<Integer, Integer> popularStartStations = dataService.popularStartStations();
+        HashMap<Integer, Integer> popularEndStations = dataService.popularEndStations();
+
+        ArrayList<Station> popularStartStationsList = new ArrayList<>();
+        ArrayList<Station> popularEndStationsList = new ArrayList<>();
+
+        for(int i = 0; i < jsonArray.length(); i++){
+            JSONObject jsonObject = jsonArray.getJSONObject(i).getJSONObject("properties");
+            int key = Integer.parseInt(jsonObject.get("kioskId").toString());
+
+            if(popularStartStations.containsKey(key)){
+                Station station = new Station();
+                station.setId(key);
+                station.setVisits(popularStartStations.get(key));
+                station.setAddress(jsonObject.getString("addressStreet"));
+                station.setBikes(jsonObject.get("bikesAvailable").toString());
+                station.setDocks(jsonObject.get("docksAvailable").toString());
+                station.setStatus(jsonObject.getString("kioskPublicStatus"));
+
+                popularStartStationsList.add(station);
+
+            }
+            if(popularEndStations.containsKey(key)){
+                Station station = new Station();
+                station.setId(key);
+                station.setVisits(popularEndStations.get(key));
+                station.setAddress(jsonObject.getString("addressStreet"));
+                station.setBikes(jsonObject.get("bikesAvailable").toString());
+                station.setDocks(jsonObject.get("docksAvailable").toString());
+                station.setStatus(jsonObject.getString("kioskPublicStatus"));
+
+                popularEndStationsList.add(station);
+            }
+        }
+
+        ArrayList<ArrayList<Station>> stations = new ArrayList<>();
+
+        stations.add(popularEndStationsList);
+        stations.add(popularStartStationsList);
+
+        return stations;
+    }
+
+
+
+
+
 }

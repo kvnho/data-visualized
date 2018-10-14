@@ -15,7 +15,7 @@ import java.util.Map;
 
 @Service
 public class DataService {
-    private static final String CSV_FILE_PATH = "C:\\Users\\kevin\\Desktop\\metro\\metro.csv";
+    private static final String CSV_FILE_PATH = "src/main/resources/static/metro.csv";
     private static HashMap<Integer, Trip> tripMap = DataService.readAllDataAtOnce();
 
     public static HashMap readAllDataAtOnce() {
@@ -61,7 +61,7 @@ public class DataService {
         return (HashMap) map;
     }
 
-    public static ArrayList<Map.Entry<Integer, Integer>> popularStartStations(){
+    public static HashMap<Integer, Integer> popularStartStations(){
         Map<Integer, Integer> popularStartStationsMap = new HashMap<Integer, Integer>();
         for(Trip trip : tripMap.values()){
             try {
@@ -78,14 +78,11 @@ public class DataService {
             }
         }
 
-        List<Map.Entry<Integer, Integer>> list = new ArrayList<>(popularStartStationsMap.entrySet());
-        list.sort(Map.Entry.comparingByValue());
-
-        return (ArrayList) list;
+        return (HashMap) popularStartStationsMap;
 
     }
 
-    public static ArrayList<Map.Entry<Integer, Integer>> popularEndStations(){
+    public static HashMap<Integer, Integer> popularEndStations(){
         Map<Integer, Integer> popularEndStationsMap = new HashMap<Integer, Integer>();
         for(Trip trip : tripMap.values()){
             try{
@@ -103,10 +100,8 @@ public class DataService {
             }
 
         }
-        List<Map.Entry<Integer, Integer>> list = new ArrayList<>(popularEndStationsMap.entrySet());
-        list.sort(Map.Entry.comparingByValue());
 
-        return (ArrayList) list;
+        return (HashMap) popularEndStationsMap;
     }
 
     public static ArrayList<Map.Entry<Integer, Integer>> ridersPerMonth(){
@@ -193,8 +188,4 @@ public class DataService {
         }
         return passholderMap;
     }
-
-
-
-
 }
